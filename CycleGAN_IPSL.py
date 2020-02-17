@@ -31,8 +31,16 @@ from keras.layers import Conv2DTranspose
 from keras.layers import LeakyReLU
 from keras.layers import Dropout
 from matplotlib import pyplot
+from mpl_toolkits.basemap import Basemap
 from shutil import copyfile
 from netCDF4 import Dataset
+
+im = plt.imread('a.tif')
+extent = [-18, 52, -38, 38] # [left, right, bottom, top]
+m = Basemap(projection='merc', llcrnrlon=extent[0], urcrnrlon=extent[1], llcrnrlat=extent[2], urcrnrlat=extent[3], resolution='c')
+m.drawcountries() 
+plt.imshow(im, extent=extent, alpha=0.6)
+plt.show()
 
 # define the standalone discriminator model
 def define_discriminator(in_shape=(28,28,1)):
@@ -188,13 +196,17 @@ def save_plot_combined(xA_real, genA2B, genB2A, epoch, n=10):
     xA2B2A, _ = generate_fake_samples(genB2A, xA2B)
     examples = vstack((xA_real, xA2A, xA2B, xA2B2A))
     print(examples.shape)
+    extent = [-30, 40, 30, 65] # [left, right, bottom, top]
+    m = Basemap(projection='merc', llcrnrlon=extent[0], urcrnrlon=extent[1], llcrnrlat=extent[2], urcrnrlat=extent[3], resolution='c')
+    m.drawcountries() 
     for i in range(4 * n):
         # define subplot
         pyplot.subplot(4, n, 1 + i)
         # turn off axis
         pyplot.axis('off')
         # plot raw pixel data
-        pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
+        # pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
+        m.imshow(im, extent=extent, alpha=0.6)
     # save plot to file
     filename = 'generated_plot_e%03d.png' % (epoch+1)
     pyplot.savefig(filename, dpi=150)
@@ -297,66 +309,63 @@ def train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB,
             dB_loss, _ = discB.train_on_batch(xB, yB)
             # train generator
             g_loss = comb_model.train_on_batch([xA_real, xB_real], [yB_real, yA_real, xA_real, xB_real, xA_real, xB_real])
-            # evaluate the model performance, sometimes
+        # evaluate the model performance, sometimes
         # summarize loss on this batch
-        pyplot.subplot(1, 2, 1)
-        pyplot.axis('off')
-        pyplot.imshow(xA_fake[0,:,:,0], cmap='gray_r')
-        pyplot.subplot(1, 2, 2)
-        pyplot.axis('off')
-        pyplot.imshow(xB_fake[0,:,:,0], cmap='gray_r')
-        pyplot.savefig('sampleAB.png', dpi=150)
-        pyplot.close()
         print('>%d, %d/%d, dA=%.3f, dB=%.3f, gB2A=%.3f, gA2B=%.3f, g=%.3f' % (i+1, j+1, bat_per_epo, dA_loss, dB_loss, g_loss[0], g_loss[1], sum(g_loss)))
         if (i+1) % 10 == 1:
             summarize_performance_combined(i, genA2B, genB2A, discA, discB, datasetA, datasetB)
+            
 
-# create the discriminator
-discA = define_discriminator()
-discB = define_discriminator()
-# create the generator
-genA2B = define_generator()
-genB2A = define_generator()
-# load weights
-#savepath = './'
-#discA = load_model(savepath + 'discA.h5')
-#discB = load_model(savepath + 'discB.h5')
-#genA2B = load_model(savepath + 'genA2B.h5')
-#genB2A = load_model(savepath + 'genB2A.h5')
-# create the generator
-#ganA2B = define_gan(genA2B, discB)
-#ganB2A = define_gan(genB2A, discA)
-# create the gan
-comb_model = define_combined(genA2B, genB2A, discA, discB)
-# load image data
-datasetA = load_A_samples()
-datasetB = load_B_samples()
-nimage = min(datasetA.shape[0], datasetB.shape[0])
-datasetA = datasetA[range(nimage)]
-datasetB = datasetB[range(nimage)]
-print(datasetA.shape)
-# train model
-# train_gan(genA2B, discB, ganA2B, datasetB, inputset = datasetA, n_epochs = 1000)
-# copyfile(savepath + 'generator_model.h5', savepath + 'genA2B.h5')
-# copyfile(savepath + 'discriminator_model.h5', savepath + 'discB.h5')
-# train_gan(genB2A, discA, ganB2A, datasetA, inputset = datasetB, n_epochs = 1000)
-# copyfile(savepath + 'generator_model.h5', savepath + 'genB2A.h5')
-# copyfile(savepath + 'discriminator_model.h5', savepath + 'discA.h5')
-train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_epochs = 100)
+def main():
+    # create the discriminator
+    discA = define_discriminator()
+    discB = define_discriminator()
+    # create the generator
+    genA2B = define_generator()
+    genB2A = define_generator()
+    # load weights
+    #savepath = './'
+    #discA = load_model(savepath + 'discA.h5')
+    #discB = load_model(savepath + 'discB.h5')
+    #genA2B = load_model(savepath + 'genA2B.h5')
+    #genB2A = load_model(savepath + 'genB2A.h5')
+    # create the generator
+    #ganA2B = define_gan(genA2B, discB)
+    #ganB2A = define_gan(genB2A, discA)
+    # create the gan
+    comb_model = define_combined(genA2B, genB2A, discA, discB)
+    # load image data
+    datasetA = load_A_samples()
+    datasetB = load_B_samples()
+    nimage = min(datasetA.shape[0], datasetB.shape[0])
+    datasetA = datasetA[range(nimage)]
+    datasetB = datasetB[range(nimage)]
+    print(datasetA.shape)
+    # train model
+    # train_gan(genA2B, discB, ganA2B, datasetB, inputset = datasetA, n_epochs = 1000)
+    # copyfile(savepath + 'generator_model.h5', savepath + 'genA2B.h5')
+    # copyfile(savepath + 'discriminator_model.h5', savepath + 'discB.h5')
+    # train_gan(genB2A, discA, ganB2A, datasetA, inputset = datasetB, n_epochs = 1000)
+    # copyfile(savepath + 'generator_model.h5', savepath + 'genB2A.h5')
+    # copyfile(savepath + 'discriminator_model.h5', savepath + 'discA.h5')
+    train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_epochs = 100)
 
-# Validation with real pairs
-fakesetB = genA2B(datasetA)
-nchecks = 10
-examples = vstack((datasetA[range(nchecks)], fakesetB[range(nchecks)], datasetA[range(nchecks)] - fakesetB[range(nchecks)]))
-print(examples.shape)
-for i in range(3 * n):
-    # define subplot
-    pyplot.subplot(3, n, 1 + i)
-    # turn off axis
-    pyplot.axis('off')
-    # plot raw pixel data
-    pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
-    # save plot to file
-    filename = 'Validation.png' % (epoch+1)
-pyplot.savefig(filename, dpi=150)
-pyplot.close()
+    # Validation with real pairs
+    fakesetB = genA2B(datasetA)
+    nchecks = 10
+    examples = vstack((datasetA[range(nchecks)], fakesetB[range(nchecks)], datasetA[range(nchecks)] - fakesetB[range(nchecks)]))
+    print(examples.shape)
+    for i in range(3 * n):
+        # define subplot
+        pyplot.subplot(3, n, 1 + i)
+        # turn off axis
+        pyplot.axis('off')
+        # plot raw pixel data
+        pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
+        # save plot to file
+        filename = 'Validation.png' % (epoch+1)
+    pyplot.savefig(filename, dpi=150)
+    pyplot.close()
+
+if __name__ == "__main__":
+    main()
