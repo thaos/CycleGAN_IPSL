@@ -346,7 +346,6 @@ print(datasetA.shape)
 # copyfile(savepath + 'discriminator_model.h5', savepath + 'discA.h5')
 train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_epochs = 100)
 
-
 # Validation with real pairs
 fakesetB = genA2B(datasetA)
 nchecks = 10
