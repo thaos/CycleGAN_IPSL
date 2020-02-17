@@ -126,6 +126,8 @@ def define_combined(genA2B, genB2A, discA, discB, in_shape=(28,28,1)):
 def load_A_samples():
     # load mnist dataset
     dataset = Dataset("tas_day_IPSL-CM5A-MR_piControl_r1i1p1_18000101-18191231_coarsegrain_europe.nc", "r", format="NETCDF4")
+    lon = dataset.variables["lon"]
+    lat = dataset.variables["lat"]
     X = dataset.variables["tas"]
     # expand to 3d, e.g. add channels dimension
     X = expand_dims(X, axis=-1)
@@ -133,10 +135,13 @@ def load_A_samples():
     X = X.astype('float32')
     # scale from [0,255] to [0,1]
     X = (X - X.min()) / (X.max() - X.min()) 
-    return X
+    return X, lon, lat
+
 def load_B_samples():
     # load mnist dataset
     dataset = Dataset("tas_day_IPSL-CM5A-MR_piControl_r1i1p1_18000101-18191231_europe.nc", "r", format="NETCDF4")
+    lon = dataset.variables["lon"]
+    lat = dataset.variables["lat"]
     X = dataset.variables["tas"]
     # expand to 3d, e.g. add channels dimension
     X = expand_dims(X, axis=-1)
@@ -144,7 +149,7 @@ def load_B_samples():
     X = X.astype('float32')
     # scale from [0,255] to [0,1]
     X = (X - X.min()) / (X.max() - X.min()) 
-    return X
+    return X, lon, lat
 
 # select real samples
 def generate_real_samples(dataset, n_samples):
@@ -197,8 +202,10 @@ def save_plot_combined(xA_real, genA2B, genB2A, epoch, n=10):
     examples = vstack((xA_real, xA2A, xA2B, xA2B2A))
     print(examples.shape)
     extent = [-30, 40, 30, 65] # [left, right, bottom, top]
-    m = Basemap(projection='merc', llcrnrlon=extent[0], urcrnrlon=extent[1], llcrnrlat=extent[2], urcrnrlat=extent[3], resolution='c')
-    m.drawcountries() 
+    map = Basemap(projection='merc', llcrnrlon=extent[0], urcrnrlon=extent[1], llcrnrlat=extent[2], urcrnrlat=extent[3], resolution='c')
+    # find x,y of map projection grid.
+    xx, yy = np.meshgrid(lon, lat)
+    xx, yy = map(xx, yy)
     for i in range(4 * n):
         # define subplot
         pyplot.subplot(4, n, 1 + i)
@@ -206,7 +213,8 @@ def save_plot_combined(xA_real, genA2B, genB2A, epoch, n=10):
         pyplot.axis('off')
         # plot raw pixel data
         # pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
-        m.imshow(im, extent=extent, alpha=0.6)
+        map.pcolormesh(xx, yy, examples[i, :, :, 0])
+        map.drawcoastlines()
     # save plot to file
     filename = 'generated_plot_e%03d.png' % (epoch+1)
     pyplot.savefig(filename, dpi=150)
@@ -335,8 +343,8 @@ def main():
     # create the gan
     comb_model = define_combined(genA2B, genB2A, discA, discB)
     # load image data
-    datasetA = load_A_samples()
-    datasetB = load_B_samples()
+    datasetA, lon, lat = load_A_samples()
+    datasetB, lon, lat = load_B_samples()
     nimage = min(datasetA.shape[0], datasetB.shape[0])
     datasetA = datasetA[range(nimage)]
     datasetB = datasetB[range(nimage)]
