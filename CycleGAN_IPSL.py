@@ -345,6 +345,7 @@ print(datasetA.shape)
 # copyfile(savepath + 'generator_model.h5', savepath + 'genB2A.h5')
 # copyfile(savepath + 'discriminator_model.h5', savepath + 'discA.h5')
 train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_epochs = 100)
+<<<<<<< HEAD
 
 
 # Validation with real pairs
