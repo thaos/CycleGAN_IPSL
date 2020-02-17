@@ -31,7 +31,6 @@ from keras.layers import Conv2DTranspose
 from keras.layers import LeakyReLU
 from keras.layers import Dropout
 from matplotlib import pyplot
-# from mpl_toolkits.basemap import Basemap
 from shutil import copyfile
 from netCDF4 import Dataset
 
@@ -194,11 +193,6 @@ def save_plot_combined(xA_real, genA2B, genB2A, epoch, n=10):
     xA2B2A, _ = generate_fake_samples(genB2A, xA2B)
     examples = vstack((xA_real, xA2A, xA2B, xA2B2A))
     print(examples.shape)
-    # extent = [-30, 40, 30, 65] # [left, right, bottom, top]
-    # map = Basemap(projection='merc', llcrnrlon=extent[0], urcrnrlon=extent[1], llcrnrlat=extent[2], urcrnrlat=extent[3], resolution='c')
-    # find x,y of map projection grid.
-    # xx, yy = np.meshgrid(lon, lat)
-    # xx, yy = map(xx, yy)
     for i in range(4 * n):
         # define subplot
         pyplot.subplot(4, n, 1 + i)
@@ -206,8 +200,6 @@ def save_plot_combined(xA_real, genA2B, genB2A, epoch, n=10):
         pyplot.axis('off')
         # plot raw pixel data
         pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
-        # map.pcolormesh(xx, yy, examples[i, :, :, 0])
-        # map.drawcoastlines()
     # save plot to file
     filename = 'generated_plot_e%03d.png' % (epoch+1)
     pyplot.savefig(filename, dpi=150)
@@ -350,23 +342,6 @@ def main():
     # copyfile(savepath + 'generator_model.h5', savepath + 'genB2A.h5')
     # copyfile(savepath + 'discriminator_model.h5', savepath + 'discA.h5')
     train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_epochs = 1000)
-
-    # Validation with real pairs
-    fakesetB = genA2B(datasetA)
-    nchecks = 10
-    examples = vstack((datasetA[range(nchecks)], fakesetB[range(nchecks)], datasetA[range(nchecks)] - fakesetB[range(nchecks)]))
-    print(examples.shape)
-    for i in range(3 * n):
-        # define subplot
-        pyplot.subplot(3, n, 1 + i)
-        # turn off axis
-        pyplot.axis('off')
-        # plot raw pixel data
-        pyplot.imshow(examples[i, :, :, 0], cmap='gray_r')
-        # save plot to file
-        filename = 'Validation.png' % (epoch+1)
-    pyplot.savefig(filename, dpi=150)
-    pyplot.close()
 
 if __name__ == "__main__":
     main()
