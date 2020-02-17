@@ -347,11 +347,11 @@ train_combined(genA2B, genB2A, discA, discB, comb_model, datasetA, datasetB, n_e
 # Validation with real pairs
 fakesetB = genA2B(datasetA)
 nchecks = 10
-examples = vstack((datasetA[range(nchecks)], fakesetB[range(nchecks)]))
+examples = vstack((datasetA[range(nchecks)], fakesetB[range(nchecks)], datasetA[range(nchecks)] - fakesetB[range(nchecks)]))
 print(examples.shape)
-for i in range(2 * n):
+for i in range(3 * n):
     # define subplot
-    pyplot.subplot(2, n, 1 + i)
+    pyplot.subplot(3, n, 1 + i)
     # turn off axis
     pyplot.axis('off')
     # plot raw pixel data
