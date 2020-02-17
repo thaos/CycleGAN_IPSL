@@ -119,9 +119,8 @@ def load_A_samples():
     # load mnist dataset
     dataset = Dataset("tas_day_IPSL-CM5A-MR_piControl_r1i1p1_18000101-18191231_coarsegrain_europe.nc", "r", format="NETCDF4")
     X = dataset.variables["tas"]
-    print(tas_cnrm[:])
     # expand to 3d, e.g. add channels dimension
-    X = expand_dims(trainX, axis=-1)
+    X = expand_dims(X, axis=-1)
     # convert from unsigned ints to floats
     X = X.astype('float32')
     # scale from [0,255] to [0,1]
@@ -131,9 +130,8 @@ def load_B_samples():
     # load mnist dataset
     dataset = Dataset("tas_day_IPSL-CM5A-MR_piControl_r1i1p1_18000101-18191231_europe.nc", "r", format="NETCDF4")
     X = dataset.variables["tas"]
-    print(tas_cnrm[:])
     # expand to 3d, e.g. add channels dimension
-    X = expand_dims(trainX, axis=-1)
+    X = expand_dims(X, axis=-1)
     # convert from unsigned ints to floats
     X = X.astype('float32')
     # scale from [0,255] to [0,1]
