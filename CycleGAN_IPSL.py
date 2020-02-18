@@ -52,25 +52,30 @@ def define_discriminator(in_shape=(28,28,1)):
 
 # define the standalone generator model
 def define_generator(in_shape=(28,28,1)):
-    model = Sequential()
-    model.add(Conv2D(64, (3,3), strides=(2, 2), padding='same', input_shape=in_shape))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.4))
-    model.add(Conv2D(64, (3,3), strides=(2, 2), padding='same'))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Dropout(0.4))
+    input = Input(shape = in_shape) 
+    c28x28 = Conv2D(64, (3,3), padding='same')(input)
+    c14x14 = Conv2D(64, (3,3), strides=(2, 2), padding='same')(c28x28)
+    model = LeakyReLU(alpha=0.2)(c14x14)
+    model = Dropout(0.4)(model)
+    model = Conv2D(64, (3,3), strides=(2, 2), padding='same')(model)
+    model = LeakyReLU(alpha=0.2)(model)
+    model = Dropout(0.4)(model)
     # model.add(Flatten())
     # n_nodes = 128 * 7 * 7
     # model.add(Dense(n_nodes))
     #model.add(LeakyReLU(alpha=0.2))
     #model.add(Reshape((7, 7, 128)))
     # upsample to 14x14
-    model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
-    model.add(LeakyReLU(alpha=0.2))
+    model = Conv2DTranspose(64, (4,4), strides=(2,2), padding='same'))(model)
+    model = Add()([model, c14x14]) # SKIP Connection
+    model = LeakyReLU(alpha=0.2)(model)
     # upsample to 28x28
-    model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
-    model.add(LeakyReLU(alpha=0.2))
-    model.add(Conv2D(1, (7,7), activation='sigmoid', padding='same'))
+    model = Conv2DTranspose(64, (4,4), strides=(2,2), padding='same')(model)
+    model = Add()([model, c28x28]) # SKIP Connection
+    model = LeakyReLU(alpha=0.2)(model)
+    model = Conv2D(1, (1,1), padding='same')(model)
+    model = Add()([model, input]) # SKIP Connection
+    model = LeakyReLU(alpha=0.2)(model)
     return model
 
 # define the combined generator and discriminator model, for updating the generator

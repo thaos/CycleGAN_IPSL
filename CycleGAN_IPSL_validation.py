@@ -76,3 +76,61 @@ for i in range(5 * nchecks):
 filename = 'Validation.png'
 pyplot.savefig(filename, dpi=150)
 pyplot.close()
+
+nloc = datasetA.shape[1] * datasetA.shape[2]
+iloc = range(0, nloc, nloc // nchecks)
+for i in iloc:
+    print(i, end=', ')
+print('\n')
+dataqqA = datasetA.reshape((-1, nloc, 1))
+dataqqB = datasetB.reshape((-1, nloc, 1))
+fakeqqB = fakesetB.reshape((-1, nloc, 1))
+fig, axes = pyplot.subplots(nrows = 2, ncols = nchecks, sharex = True, sharey = True)
+for i in range(nchecks):
+    print('%d, %d' % (1 + i, nchecks + i + 1))
+    # Quantile-quantile plot
+    axes[0, i].scatter(np.sort(dataqqA[:, iloc[i], 0]), np.sort(dataqqB[:, iloc[i], 0]))
+    axes[0, i].plot([0,1], [0, 1], 'r-', lw=2)
+    axes[1, i].scatter(np.sort(fakeqqB[:, iloc[i], 0]), np.sort(dataqqB[:, iloc[i], 0]))
+    axes[1, i].plot([0,1], [0, 1], 'r-', lw=2)
+    #pyplot.xlabel('X')
+    #pyplot.ylabel('Y')
+filename = 'QQplot.png'
+pyplot.savefig(filename, dpi=150)
+pyplot.close()
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib import animation
+
+fig, axes = pyplot.subplots(nrows = 1, ncols = 3, sharex = True, sharey = True)
+
+frame = 0
+axes[0].set_title("A")
+map.pcolormesh(xx,yy, datasetA[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[0])
+map.drawcoastlines(linewidth = 0.2, ax=axes[0])
+axes[1].set_title("B")
+map.pcolormesh(xx,yy, datasetB[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[1])
+map.drawcoastlines(linewidth = 0.2, ax=axes[1])
+axes[2].set_title("genA2B(A)")
+map.pcolormesh(xx,yy, fakesetB[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[2])
+map.drawcoastlines(linewidth = 0.2, ax=axes[2])
+#pyplot.show()
+
+def update(frame):
+    axes[0].set_title("A")
+    ln1 = map.pcolormesh(xx,yy, datasetA[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[0])
+    map.drawcoastlines(linewidth = 0.2, ax=axes[0])
+    axes[1].set_title("B")
+    ln2 = map.pcolormesh(xx,yy, datasetB[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[1])
+    map.drawcoastlines(linewidth = 0.2, ax=axes[1])
+    axes[2].set_title("genA2B(A)")
+    ln3 = map.pcolormesh(xx,yy, fakesetB[frame, :, :, 0], vmin = 0, vmax = 1, cmap=cmap, ax=axes[2])
+    map.drawcoastlines(linewidth = 0.2, ax=axes[2])
+    return [ln1, ln2, ln3]
+
+ani = FuncAnimation(fig, update, frames=range(100), blit=False)
+#pyplot.show()
+writer = animation.writers['ffmpeg'](fps=30)
+ani.save('demo.mp4',writer=writer,dpi=150)
