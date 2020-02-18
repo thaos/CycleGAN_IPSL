@@ -77,7 +77,8 @@ def define_generator(in_shape=(28,28,1)):
     model = Conv2D(1, (1,1), padding='same')(model)
     model = Add()([model, input]) # SKIP Connection
     model = LeakyReLU(alpha=0.2)(model)
-    return model
+    generator = Model(input, model)
+    return generator
 
 # define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model):
