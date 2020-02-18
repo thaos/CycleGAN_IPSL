@@ -23,6 +23,7 @@ from keras.models import Sequential
 from keras.models import Model
 from keras.models import load_model
 from keras.layers import Input
+from keras.layers import Add
 from keras.layers import Dense
 from keras.layers import Reshape
 from keras.layers import Flatten
