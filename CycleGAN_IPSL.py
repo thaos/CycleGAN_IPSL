@@ -66,7 +66,7 @@ def define_generator(in_shape=(28,28,1)):
     #model.add(LeakyReLU(alpha=0.2))
     #model.add(Reshape((7, 7, 128)))
     # upsample to 14x14
-    model = Conv2DTranspose(64, (4,4), strides=(2,2), padding='same'))(model)
+    model = Conv2DTranspose(64, (4,4), strides=(2,2), padding='same')(model)
     model = Add()([model, c14x14]) # SKIP Connection
     model = LeakyReLU(alpha=0.2)(model)
     # upsample to 28x28
